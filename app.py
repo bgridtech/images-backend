@@ -99,13 +99,11 @@ def upload_to_github(repo, orig_filename, data_bytes):
     raw_url = f"https://raw.githubusercontent.com/{REPO_OWNER}/{repo}/main/{path}"
     return ts_filename, raw_url
 
-@app.before_first_request
-def setup():
-    # Initialize (drop & create) tables on first request
-    init_db()
-
 @app.route("/")
 def index():
+    if not hasattr(app, "initialized"):
+        init_db()
+        app.initialized = True
     return render_template("index.html")
 
 @app.route("/upload", methods=["POST"])
