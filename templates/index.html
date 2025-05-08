@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Image Upload</title>
-  <!-- Image compression library -->
+  <!-- browser-image-compression lib -->
   <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
   <style>
     :root {
@@ -15,7 +15,6 @@
       --text: #1f2937;
       --muted: #6b7280;
     }
-
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -26,23 +25,21 @@
       min-height: 100vh;
       color: var(--text);
     }
-
     .upload-card {
       background: var(--card-bg);
       border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
       padding: 40px 30px;
       width: 100%;
       max-width: 420px;
       text-align: center;
     }
-
     h1 {
       font-size: 22px;
       margin-bottom: 24px;
     }
 
-    /* ——— Drag & Drop Box ——— */
+    /* Drag & Drop */
     .file-drop {
       border: 2px dashed #cbd5e1;
       border-radius: 12px;
@@ -125,7 +122,6 @@
       display: none;
       position: relative;
     }
-    /* show URL as plain code text */
     #result {
       display: block;
       background: #f3f4f6;
@@ -196,14 +192,14 @@
       resultDiv.textContent = "";
     }
 
-    // file chooser
+    // File selection
     imageInput.addEventListener("change", () => {
       selectedFile = imageInput.files[0];
       fileNameDiv.textContent = selectedFile ? selectedFile.name : "No file chosen";
       resetUI();
     });
 
-    // drag & drop handlers
+    // Drag & drop
     dropArea.addEventListener("dragover", e => {
       e.preventDefault();
       dropArea.classList.add("dragover");
@@ -230,7 +226,7 @@
       progressBar.style.display = "block";
 
       try {
-        // Only compress if > 3MB
+        // Conditionally compress above 3MB
         let uploadFile = selectedFile;
         if (selectedFile.size > 3 * 1024 * 1024) {
           loadingText.textContent = "Compressing image…";
@@ -241,36 +237,56 @@
           });
         }
 
-        // Fake upload with progress
-        const fakeUpload = file => new Promise(resolve => {
-          let uploaded = 0;
-          const total = file.size;
-          const interval = setInterval(() => {
-            uploaded += total / 30;
-            const pct = Math.min((uploaded / total) * 100, 100);
-            progressFill.style.width = pct.toFixed(0) + "%";
-            loadingText.textContent = `Uploading… ${pct.toFixed(0)}%`;
-            if (pct >= 100) {
-              clearInterval(interval);
-              setTimeout(() => resolve(URL.createObjectURL(file)), 500);
-            }
-          }, 100);
-        });
+        // Prepare form data
+        const formData = new FormData();
+        formData.append("image", uploadFile, uploadFile.name);
 
-        const url = await fakeUpload(uploadFile);
-        // show URL as plain text
-        resultDiv.textContent = url;
-        resultWrapper.style.display = "block";
-        loadingText.style.display = "none";
+        // Real upload via XHR to your Flask server
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/upload");
+        xhr.upload.onprogress = e => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            progressFill.style.width = pct + "%";
+            loadingText.textContent = `Uploading… ${pct}%`;
+          }
+        };
+        xhr.onload = () => {
+          uploadBtn.disabled = false;
+          loadingText.style.display = "none";
+          progressBar.style.display = "none";
+
+          try {
+            const res = JSON.parse(xhr.responseText);
+            if (res.url) {
+              resultDiv.textContent = res.url;
+              resultWrapper.style.display = "block";
+            } else {
+              resultDiv.textContent = res.error || "Upload failed.";
+              resultWrapper.style.display = "block";
+            }
+          } catch {
+            resultDiv.textContent = "Unexpected server response.";
+            resultWrapper.style.display = "block";
+          }
+        };
+        xhr.onerror = () => {
+          uploadBtn.disabled = false;
+          loadingText.style.display = "none";
+          progressBar.style.display = "none";
+          resultDiv.textContent = "Network error.";
+          resultWrapper.style.display = "block";
+        };
+        xhr.send(formData);
+
       } catch (err) {
         alert("Error during compression or upload");
         console.error(err);
-      } finally {
         uploadBtn.disabled = false;
       }
     });
 
-    // copy-to-clipboard
+    // Copy URL
     copyIcon.addEventListener("click", () => {
       navigator.clipboard.writeText(resultDiv.textContent).then(() => {
         copyIcon.textContent = "✅";
