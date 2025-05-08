@@ -3,118 +3,103 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload Image</title>
+  <title>Image Uploader</title>
   <style>
-    :root {
-      --bg: #f0f2f5;
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --accent: #6366f1;
-      --accent-dark: #4f46e5;
-      --text: #1f2937;
-      --muted: #6b7280;
-    }
-
+    /* Reset and base styles */
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #dfe9f3, #ffffff);
       height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--text);
+      background: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .upload-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-      padding: 40px 30px;
-      width: 100%;
-      max-width: 360px;
+    .upload-container {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
       text-align: center;
-      animation: fadeIn 0.4s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
+      width: 100%;
+      max-width: 400px;
     }
 
     h1 {
-      font-size: 22px;
-      margin-bottom: 24px;
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333333;
     }
 
     input[type="file"] {
       display: block;
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 24px;
-      font-size: 14px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: border-color 0.2s;
+      margin: 20px auto;
+      font-size: 16px;
     }
 
-    input[type="file"]:hover {
-      border-color: var(--accent);
-    }
-
-    button {
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      color: #fff;
+    .upload-btn {
+      position: relative;
+      background-color: #007bff;
+      color: #ffffff;
+      padding: 12px 24px;
       border: none;
-      padding: 12px 20px;
-      font-size: 15px;
-      border-radius: 8px;
+      border-radius: 6px;
+      font-size: 16px;
       cursor: pointer;
-      transition: transform 0.2s ease, background 0.3s ease;
-      width: 100%;
-      margin-top: 8px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      overflow: hidden;
     }
 
-    button:hover {
-      transform: scale(1.03);
+    .upload-btn:hover {
+      background-color: #0056b3;
+      transform: translateY(-2px);
     }
 
-    button:disabled {
-      background: #bbb;
+    .upload-btn:disabled {
+      background-color: #cccccc;
       cursor: not-allowed;
     }
 
-    #loading {
-      margin-top: 16px;
-      font-size: 14px;
-      color: var(--muted);
+    .spinner {
       display: none;
+      margin-top: 10px;
+    }
+
+    .spinner div {
+      width: 18px;
+      height: 18px;
+      margin: 0 auto;
+      border: 3px solid #007bff;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     #result {
       margin-top: 20px;
+      word-wrap: break-word;
       font-size: 14px;
-      word-break: break-all;
-      color: var(--text);
-      background: #f3f4f6;
-      padding: 10px;
-      border-radius: 6px;
+      color: #333333;
     }
   </style>
 </head>
 <body>
-  <div class="upload-card">
-    <h1>Upload Your Image</h1>
+  <div class="upload-container">
+    <h1>Upload Image</h1>
     <form id="uploadForm">
       <input type="file" id="imageInput" name="image" accept="image/*" required />
-      <button type="submit" id="uploadBtn">Upload</button>
-      <div id="loading">Uploading, please wait...</div>
+      <button type="submit" class="upload-btn" id="uploadBtn">Upload</button>
+      <div class="spinner" id="loading"><div></div></div>
     </form>
     <div id="result"></div>
   </div>
@@ -123,7 +108,7 @@
     const form = document.getElementById("uploadForm");
     const imageInput = document.getElementById("imageInput");
     const uploadBtn = document.getElementById("uploadBtn");
-    const loadingText = document.getElementById("loading");
+    const loadingSpinner = document.getElementById("loading");
     const resultDiv = document.getElementById("result");
 
     form.addEventListener("submit", async (e) => {
@@ -134,7 +119,7 @@
       formData.append("image", imageInput.files[0]);
 
       uploadBtn.disabled = true;
-      loadingText.style.display = "block";
+      loadingSpinner.style.display = "block";
       resultDiv.textContent = "";
 
       try {
@@ -152,7 +137,7 @@
         resultDiv.textContent = "An error occurred.";
       } finally {
         uploadBtn.disabled = false;
-        loadingText.style.display = "none";
+        loadingSpinner.style.display = "none";
       }
     });
   </script>
