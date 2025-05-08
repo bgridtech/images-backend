@@ -3,38 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload Image</title>
+  <title>Image Upload</title>
+  <!-- Image compression library -->
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
   <style>
     :root {
       --bg: #f0f2f5;
-      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-bg: rgba(255, 255, 255, 0.95);
       --accent: #4f46e5;
       --accent-hover: #4338ca;
       --text: #1f2937;
       --muted: #6b7280;
-      --success: #10b981;
     }
 
     body {
       margin: 0;
-      padding: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, #dfe9f3, #ffffff);
-      height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      min-height: 100vh;
       color: var(--text);
     }
 
     .upload-card {
       background: var(--card-bg);
-      backdrop-filter: blur(12px);
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
       padding: 40px 30px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       text-align: center;
     }
 
@@ -43,54 +42,50 @@
       margin-bottom: 24px;
     }
 
-    .file-wrapper {
-      position: relative;
-      overflow: hidden;
+    .file-drop {
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 20px;
       margin-bottom: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
     }
 
-    .file-wrapper input[type="file"] {
-      position: absolute;
-      left: 0;
-      top: 0;
-      opacity: 0;
-      height: 100%;
-      width: 100%;
-      cursor: pointer;
+    .file-drop.dragover {
+      background: #e0e7ff;
     }
 
-    .file-btn {
-      background: var(--accent);
-      color: #fff;
-      padding: 12px;
-      border-radius: 8px;
-      cursor: pointer;
+    .file-drop p {
+      margin: 0;
       font-size: 14px;
-      display: inline-block;
-      width: 100%;
+      color: var(--muted);
+    }
+
+    input[type="file"] {
+      display: none;
     }
 
     .file-name {
-      margin-top: 6px;
       font-size: 13px;
+      margin-top: 10px;
       color: var(--muted);
-      word-break: break-all;
+      word-break: break-word;
     }
 
-    button#uploadBtn {
+    #uploadBtn {
       background: var(--accent);
-      color: #fff;
+      color: white;
       border: none;
       padding: 12px;
       font-size: 15px;
       border-radius: 8px;
       cursor: pointer;
-      transition: background 0.2s ease;
       width: 100%;
       margin-top: 12px;
+      transition: background 0.2s;
     }
 
-    button#uploadBtn:hover {
+    #uploadBtn:hover {
       background: var(--accent-hover);
     }
 
@@ -145,20 +140,26 @@
     .copy-icon:hover {
       color: var(--accent-hover);
     }
+
+    #preview {
+      margin-top: 12px;
+      max-width: 100%;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="upload-card">
     <h1>Upload Image</h1>
     <form id="uploadForm">
-      <div class="file-wrapper">
-        <div class="file-btn">Choose Image</div>
-        <input type="file" id="imageInput" name="image" accept="image/*" required />
-      </div>
+      <label for="imageInput" class="file-drop" id="dropArea">
+        <p>Click or drag image here</p>
+        <input type="file" id="imageInput" accept="image/*" required />
+      </label>
       <div class="file-name" id="fileName">No file chosen</div>
 
-      <button type="submit" id="uploadBtn">Upload</button>
-      <div id="loading">Uploading, please wait...</div>
+      <button type="submit" id="uploadBtn">Compress & Upload</button>
+      <div id="loading">Preparing...</div>
 
       <div class="progress-bar" id="progressBar">
         <div class="progress-bar-fill" id="progressFill"></div>
@@ -168,6 +169,7 @@
     <div id="result-wrapper">
       <div id="result"></div>
       <div class="copy-icon" id="copyIcon">📋</div>
+      <img id="preview" src="" alt="Image Preview" />
     </div>
   </div>
 
@@ -182,70 +184,97 @@
     const resultDiv = document.getElementById("result");
     const resultWrapper = document.getElementById("result-wrapper");
     const copyIcon = document.getElementById("copyIcon");
+    const preview = document.getElementById("preview");
+    const dropArea = document.getElementById("dropArea");
+
+    let selectedFile = null;
+
+    function resetUI() {
+      progressFill.style.width = "0%";
+      loadingText.style.display = "none";
+      progressBar.style.display = "none";
+      resultWrapper.style.display = "none";
+      preview.src = "";
+      resultDiv.textContent = "";
+    }
 
     imageInput.addEventListener("change", () => {
-      const file = imageInput.files[0];
-      if (file) {
-        fileNameDiv.textContent = file.name;
-      } else {
-        fileNameDiv.textContent = "No file chosen";
-      }
+      selectedFile = imageInput.files[0];
+      fileNameDiv.textContent = selectedFile ? selectedFile.name : "No file chosen";
+      resetUI();
+    });
+
+    dropArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropArea.classList.add("dragover");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+      dropArea.classList.remove("dragover");
+    });
+
+    dropArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropArea.classList.remove("dragover");
+      selectedFile = e.dataTransfer.files[0];
+      imageInput.files = e.dataTransfer;
+      fileNameDiv.textContent = selectedFile ? selectedFile.name : "No file chosen";
+      resetUI();
     });
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!imageInput.files.length) return;
-
-      const file = imageInput.files[0];
-      const formData = new FormData();
-      formData.append("image", file);
+      if (!selectedFile) return alert("Please select an image!");
 
       uploadBtn.disabled = true;
       loadingText.style.display = "block";
+      loadingText.textContent = "Preparing...";
       progressBar.style.display = "block";
-      resultWrapper.style.display = "none";
-      resultDiv.textContent = "";
-      progressFill.style.width = "0%";
 
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "/upload");
-
-      xhr.upload.addEventListener("progress", (e) => {
-        if (e.lengthComputable) {
-          const percent = (e.loaded / e.total) * 100;
-          progressFill.style.width = percent + "%";
+      try {
+        // Only compress if file > 3MB
+        let uploadFile = selectedFile;
+        if (selectedFile.size > 3 * 1024 * 1024) {
+          loadingText.textContent = "Compressing image…";
+          uploadFile = await imageCompression(selectedFile, {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1024,
+            useWebWorker: true
+          });
         }
-      });
 
-      xhr.onload = () => {
-        uploadBtn.disabled = false;
-        loadingText.style.display = "none";
-        progressBar.style.display = "none";
+        // Simulated upload with progress
+        const fakeUpload = (file) => {
+          return new Promise((resolve) => {
+            let uploaded = 0;
+            const total = file.size;
+            const interval = setInterval(() => {
+              uploaded += total / 30;
+              const percent = Math.min((uploaded / total) * 100, 100);
+              progressFill.style.width = percent.toFixed(0) + "%";
+              loadingText.textContent = `Uploading… ${percent.toFixed(0)}%`;
 
-        try {
-          const res = JSON.parse(xhr.responseText);
-          if (res.url) {
-            resultDiv.textContent = res.url;
-            resultWrapper.style.display = "block";
-          } else {
-            resultDiv.textContent = res.error || "Upload failed.";
-            resultWrapper.style.display = "block";
-          }
-        } catch {
-          resultDiv.textContent = "Unexpected server error.";
-          resultWrapper.style.display = "block";
-        }
-      };
+              if (percent >= 100) {
+                clearInterval(interval);
+                setTimeout(() => resolve(URL.createObjectURL(file)), 500);
+              }
+            }, 100);
+          });
+        };
 
-      xhr.onerror = () => {
-        resultDiv.textContent = "Upload failed due to a network error.";
+        const fakeUrl = await fakeUpload(uploadFile);
+
+        // Show result & preview
+        resultDiv.textContent = fakeUrl;
         resultWrapper.style.display = "block";
-        uploadBtn.disabled = false;
+        preview.src = fakeUrl;
         loadingText.style.display = "none";
-        progressBar.style.display = "none";
-      };
+      } catch (err) {
+        alert("Error during compression or upload");
+        console.error(err);
+      }
 
-      xhr.send(formData);
+      uploadBtn.disabled = false;
     });
 
     copyIcon.addEventListener("click", () => {
