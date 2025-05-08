@@ -6,199 +6,255 @@
   <title>Upload Image</title>
   <style>
     :root {
-      --bg: #eef1f6;
-      --card-bg: rgba(255, 255, 255, 0.75);
-      --accent: #6366f1;
-      --accent-dark: #4f46e5;
-      --accent-light: #8b5cf6;
-      --text: #1e293b;
-      --muted: #64748b;
+      --bg: #f0f2f5;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --text: #1f2937;
+      --muted: #6b7280;
       --success: #10b981;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      height: 100vh; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(120deg, #dfe9f3, #f5f7fa);
-      font-family: 'Inter', sans-serif; color: var(--text);
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #dfe9f3, #ffffff);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
     }
+
     .upload-card {
-      background: var(--card-bg); backdrop-filter: blur(20px);
-      border-radius: 20px; padding: 40px 32px; max-width: 420px; width: 100%;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.1); text-align: center;
-      animation: fadeIn 0.5s ease-in-out;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 24px;
     }
-    h1 { font-size: 24px; margin-bottom: 24px; font-weight: 600; }
-    .file-input-wrapper {
-      position: relative; margin-bottom: 20px;
+
+    .file-wrapper {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 12px;
     }
-    .file-input-wrapper input[type="file"] {
-      opacity: 0; width: 100%; height: 48px; position: absolute; top: 0; left: 0;
+
+    .file-wrapper input[type="file"] {
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      height: 100%;
+      width: 100%;
       cursor: pointer;
     }
-    .file-label {
-      display: block; background: #fff; border: 1px solid #d1d5db;
-      border-radius: 10px; padding: 12px; text-align: center;
-      color: #4b5563; font-size: 14px; transition: border-color 0.2s;
+
+    .file-btn {
+      background: var(--accent);
+      color: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-block;
+      width: 100%;
     }
-    .file-input-wrapper:hover .file-label { border-color: var(--accent); }
-    button {
-      width: 100%; padding: 12px; font-size: 15px; font-weight: 500;
-      border: none; border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      color: white; cursor: pointer;
-      transition: transform 0.2s, background 0.3s;
+
+    .file-name {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      word-break: break-all;
     }
-    button:hover { transform: scale(1.03); }
-    button:disabled { background: #cbd5e1; cursor: not-allowed; }
-    .info {
-      margin-top: 12px; font-size: 14px; color: var(--muted);
+
+    button#uploadBtn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      width: 100%;
+      margin-top: 12px;
     }
-    #uploadProgress {
-      width: 100%; height: 12px; background: #e2e8f0;
-      border-radius: 8px; overflow: hidden; margin-top: 16px; display: none;
+
+    button#uploadBtn:hover {
+      background: var(--accent-hover);
     }
-    #uploadProgressBar {
-      height: 100%; width: 0;
-      background: linear-gradient(to right, var(--accent-light), var(--accent));
+
+    #loading {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+      display: none;
+    }
+
+    .progress-bar {
+      width: 100%;
+      background: #e5e7eb;
+      border-radius: 6px;
+      height: 12px;
+      overflow: hidden;
+      margin-top: 12px;
+      display: none;
+    }
+
+    .progress-bar-fill {
+      background: var(--accent);
+      height: 100%;
+      width: 0%;
       transition: width 0.2s ease;
     }
-    .url-container {
-      position: relative; margin-top: 20px; display: none;
+
+    #result-wrapper {
+      margin-top: 18px;
+      display: none;
+      position: relative;
     }
-    .url-box {
-      width: 100%; padding: 12px 36px 12px 12px; background: #f8fafc;
-      border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px;
-      word-break: break-all; color: var(--text); text-align: left;
+
+    #result {
+      background: #f3f4f6;
+      padding: 10px 35px 10px 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      word-break: break-all;
+      color: var(--text);
     }
+
     .copy-icon {
-      position: absolute; right: 12px; top: 50%;
-      transform: translateY(-50%); cursor: pointer;
-      color: var(--muted); font-size: 18px; transition: color 0.2s;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--accent);
     }
-    .copy-icon:hover { color: var(--accent-dark); }
+
+    .copy-icon:hover {
+      color: var(--accent-hover);
+    }
   </style>
 </head>
 <body>
   <div class="upload-card">
-    <h1>Upload Your Image</h1>
+    <h1>Upload Image</h1>
     <form id="uploadForm">
-      <div class="file-input-wrapper">
-        <label class="file-label">Choose image</label>
+      <div class="file-wrapper">
+        <div class="file-btn">Choose Image</div>
         <input type="file" id="imageInput" name="image" accept="image/*" required />
       </div>
-      <button type="submit" id="uploadBtn">Upload</button>
+      <div class="file-name" id="fileName">No file chosen</div>
 
-      <div class="info" id="fileSize"></div>
-      <div class="info" id="compressing" style="display:none;">Compressing image…</div>
-      <div class="info" id="compressedSize"></div>
-      <div class="info" id="uploading" style="display:none;">Uploading image…</div>
-      <div id="uploadProgress"><div id="uploadProgressBar"></div></div>
+      <button type="submit" id="uploadBtn">Upload</button>
+      <div id="loading">Uploading, please wait...</div>
+
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
     </form>
 
-    <div class="url-container" id="urlContainer">
-      <div class="url-box" id="result"></div>
-      <div class="copy-icon" id="copyIcon" title="Copy URL">📋</div>
+    <div id="result-wrapper">
+      <div id="result"></div>
+      <div class="copy-icon" id="copyIcon">📋</div>
     </div>
   </div>
 
   <script>
     const form = document.getElementById("uploadForm");
     const imageInput = document.getElementById("imageInput");
+    const fileNameDiv = document.getElementById("fileName");
     const uploadBtn = document.getElementById("uploadBtn");
-    const fileSizeDiv = document.getElementById("fileSize");
-    const compressingText = document.getElementById("compressing");
-    const compressedSizeDiv = document.getElementById("compressedSize");
-    const uploadingText = document.getElementById("uploading");
-    const progressBar = document.getElementById("uploadProgress");
-    const progressFill = document.getElementById("uploadProgressBar");
-    const urlContainer = document.getElementById("urlContainer");
+    const loadingText = document.getElementById("loading");
+    const progressBar = document.getElementById("progressBar");
+    const progressFill = document.getElementById("progressFill");
     const resultDiv = document.getElementById("result");
+    const resultWrapper = document.getElementById("result-wrapper");
     const copyIcon = document.getElementById("copyIcon");
 
-    form.addEventListener("submit", async e => {
-      e.preventDefault();
+    imageInput.addEventListener("change", () => {
       const file = imageInput.files[0];
-      if (!file) return;
+      if (file) {
+        fileNameDiv.textContent = file.name;
+      } else {
+        fileNameDiv.textContent = "No file chosen";
+      }
+    });
 
-      fileSizeDiv.textContent = `Original size: ${(file.size/1024/1024).toFixed(2)} MB`;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!imageInput.files.length) return;
+
+      const file = imageInput.files[0];
+      const formData = new FormData();
+      formData.append("image", file);
+
       uploadBtn.disabled = true;
-      urlContainer.style.display = "none";
+      loadingText.style.display = "block";
+      progressBar.style.display = "block";
+      resultWrapper.style.display = "none";
       resultDiv.textContent = "";
-      compressingText.style.display = "none";
-      compressedSizeDiv.textContent = "";
-      uploadingText.style.display = "none";
-      progressBar.style.display = "none";
       progressFill.style.width = "0%";
 
-      let finalFile = file;
-      if (file.size > 3*1024*1024) {
-        compressingText.style.display = "block";
-        finalFile = await compressImage(file);
-        compressingText.style.display = "none";
-        compressedSizeDiv.textContent = `Compressed size: ${(finalFile.size/1024/1024).toFixed(2)} MB`;
-      }
-
-      const formData = new FormData();
-      formData.append("image", finalFile);
-
-      uploadingText.style.display = "block";
-      progressBar.style.display = "block";
-
       const xhr = new XMLHttpRequest();
-      xhr.open("POST","/upload");
-      xhr.upload.onprogress = e => {
+      xhr.open("POST", "/upload");
+
+      xhr.upload.addEventListener("progress", (e) => {
         if (e.lengthComputable) {
-          const pct = Math.round((e.loaded/e.total)*100);
-          progressFill.style.width = pct + "%";
+          const percent = (e.loaded / e.total) * 100;
+          progressFill.style.width = percent + "%";
         }
-      };
+      });
+
       xhr.onload = () => {
         uploadBtn.disabled = false;
-        uploadingText.style.display = "none";
-        const res = JSON.parse(xhr.responseText);
-        resultDiv.textContent = res.url || res.error || "Upload failed.";
-        urlContainer.style.display = "block";
+        loadingText.style.display = "none";
+        progressBar.style.display = "none";
+
+        try {
+          const res = JSON.parse(xhr.responseText);
+          if (res.url) {
+            resultDiv.textContent = res.url;
+            resultWrapper.style.display = "block";
+          } else {
+            resultDiv.textContent = res.error || "Upload failed.";
+            resultWrapper.style.display = "block";
+          }
+        } catch {
+          resultDiv.textContent = "Unexpected server error.";
+          resultWrapper.style.display = "block";
+        }
       };
+
       xhr.onerror = () => {
+        resultDiv.textContent = "Upload failed due to a network error.";
+        resultWrapper.style.display = "block";
         uploadBtn.disabled = false;
-        uploadingText.style.display = "none";
-        resultDiv.textContent = "Upload error.";
-        urlContainer.style.display = "block";
+        loadingText.style.display = "none";
+        progressBar.style.display = "none";
       };
+
       xhr.send(formData);
     });
 
     copyIcon.addEventListener("click", () => {
-      const txt = resultDiv.textContent;
-      navigator.clipboard.writeText(txt).then(() => {
+      const text = resultDiv.textContent;
+      navigator.clipboard.writeText(text).then(() => {
         copyIcon.textContent = "✅";
-        setTimeout(() => copyIcon.textContent = "📋", 1000);
+        setTimeout(() => (copyIcon.textContent = "📋"), 1500);
       });
     });
-
-    function compressImage(file) {
-      return new Promise(resolve => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.src = url;
-        img.onload = () => {
-          const max = 1024;
-          let w = img.width, h = img.height;
-          if (w>max||h>max) {
-            const scale = Math.min(max/w, max/h);
-            w*=scale; h*=scale;
-          }
-          const c = document.createElement("canvas");
-          c.width=w; c.height=h;
-          c.getContext("2d").drawImage(img,0,0,w,h);
-          c.toBlob(b=> resolve(new File([b],file.name,{type:file.type})), file.type, 0.8);
-        };
-      });
-    }
   </script>
 </body>
 </html>
