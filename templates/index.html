@@ -2,66 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Image Uploader</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 2rem;
-    }
-    #preview {
-      margin-top: 20px;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      border: 1px solid #ccc;
-      padding: 8px;
-      margin-top: 10px;
-    }
-  </style>
+  <title>Upload Image</title>
 </head>
 <body>
   <h2>Upload an Image</h2>
-  
-  <input type="file" id="imageInput" accept="image/*">
+  <input type="file" id="imageInput" />
   <button onclick="uploadImage()">Upload</button>
-  
-  <div id="preview">
-    <p><strong>Uploaded Image URL:</strong> <span id="imageUrl"></span></p>
-    <img id="uploadedImage" src="" alt="" style="display: none;">
-  </div>
+  <div id="result"></div>
 
   <script>
     async function uploadImage() {
-      const input = document.getElementById('imageInput');
+      const input = document.getElementById("imageInput");
       const file = input.files[0];
-      if (!file) {
-        alert("Please select an image first.");
-        return;
-      }
-
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append("image", file);
 
-      try {
-        const response = await fetch('http://localhost:5000/upload', {
-          method: 'POST',
-          body: formData
-        });
+      const res = await fetch("/upload", {
+        method: "POST",
+        body: formData
+      });
 
-        const data = await response.json();
+      const data = await res.json();
+      const resultDiv = document.getElementById("result");
 
-        if (response.ok) {
-          const imageUrl = data.url;
-          document.getElementById('imageUrl').textContent = imageUrl;
-          const img = document.getElementById('uploadedImage');
-          img.src = imageUrl;
-          img.style.display = 'block';
-        } else {
-          alert("Upload failed: " + (data.error?.message || "Unknown error"));
-        }
-      } catch (error) {
-        alert("Upload error: " + error.message);
+      if (data.url) {
+        resultDiv.innerHTML = `<p>Uploaded:</p><a href="${data.url}" target="_blank">${data.url}</a><br/><img src="${data.url}" width="200"/>`;
+      } else {
+        resultDiv.innerText = "Error: " + JSON.stringify(data.error);
       }
     }
   </script>
