@@ -1,15 +1,17 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask import Flask, request, jsonify, render_template
+import os
 import base64
 import requests
-import os
 from datetime import datetime
+from flask_cors import CORS
 
-# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Upload image route
+@app.route("/")
+def index():
+    return render_template("index.html")
+
 @app.route("/upload", methods=["POST"])
 def upload_image():
     try:
@@ -17,18 +19,15 @@ def upload_image():
         image_data = image.read()
         image_name = image.filename
 
-        # Set GitHub info
         GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-        REPO = "yourusername/your-repo"  # Replace with your GitHub repo
+        REPO = "yourusername/your-repo"
         BRANCH = "main"
         TIMESTAMP = datetime.now().strftime("%Y%m%d%H%M%S")
         PATH = f"uploads/{TIMESTAMP}_{image_name}"
         COMMIT_MSG = f"Upload {image_name} at {TIMESTAMP}"
 
-        # Encode image to base64
         encoded = base64.b64encode(image_data).decode("utf-8")
 
-        # Send PUT request to GitHub API
         url = f"https://api.github.com/repos/{REPO}/contents/{PATH}"
         headers = {
             "Authorization": f"token {GITHUB_TOKEN}",
@@ -51,13 +50,8 @@ def upload_image():
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
 
-
-# Required Vercel handler
 def handler(environ, start_response):
     from werkzeug.middleware.dispatcher import DispatcherMiddleware
-    from werkzeug.wrappers import Request, Response
-
-    # Wrap Flask app in WSGI middleware
+    from werkzeug.serving import run_simple
     app_dispatch = DispatcherMiddleware(app)
     return app_dispatch(environ, start_response)
-
