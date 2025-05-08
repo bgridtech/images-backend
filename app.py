@@ -20,7 +20,7 @@ def upload_image():
         image_name = image.filename
 
         GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-        REPO = "yourusername/your-repo"
+        REPO = "bgridtech/images"
         BRANCH = "main"
         TIMESTAMP = datetime.now().strftime("%Y%m%d%H%M%S")
         PATH = f"uploads/{TIMESTAMP}_{image_name}"
