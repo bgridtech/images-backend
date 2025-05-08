@@ -3,7 +3,7 @@ import base64
 import requests
 import psycopg2
 from datetime import datetime
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 
 # Flask setup
@@ -11,9 +11,9 @@ app = Flask(__name__)
 CORS(app)
 
 # GitHub config
-REPO_OWNER = "yourusername"
+REPO_OWNER = "bgridtech"
 REPO_LIST = ["images", "images1", "images2", "images3"]
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # set this as env var in Vercel
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # set this as an env var in Vercel
 
 # NeonDB (Postgres) config — as provided
 DB_PARAMS = {
@@ -88,6 +88,11 @@ def upload_to_github(repo, filename, data_bytes):
     resp = requests.put(url, json=payload, headers=headers)
     resp.raise_for_status()
     return f"https://raw.githubusercontent.com/{REPO_OWNER}/{repo}/main/{path}"
+
+@app.route("/")
+def index():
+    """Render the HTML upload page."""
+    return render_template("index.html")
 
 @app.route("/upload", methods=["POST"])
 def upload_image():
