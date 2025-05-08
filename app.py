@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
-import os
 import base64
 import requests
+import os
 from datetime import datetime
 from flask_cors import CORS
 
@@ -50,8 +50,4 @@ def upload_image():
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
 
-def handler(environ, start_response):
-    from werkzeug.middleware.dispatcher import DispatcherMiddleware
-    from werkzeug.serving import run_simple
-    app_dispatch = DispatcherMiddleware(app)
-    return app_dispatch(environ, start_response)
+# No app.run() needed for Vercel
