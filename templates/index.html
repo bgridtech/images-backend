@@ -42,33 +42,42 @@
       margin-bottom: 24px;
     }
 
+    /* ——— Drag & Drop Box ——— */
     .file-drop {
       border: 2px dashed #cbd5e1;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 12px;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 14px;
       cursor: pointer;
       transition: background 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 120px;
     }
-
     .file-drop.dragover {
       background: #e0e7ff;
     }
-
+    .drop-icon {
+      font-size: 36px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
     .file-drop p {
       margin: 0;
       font-size: 14px;
       color: var(--muted);
+      text-align: center;
     }
-
     input[type="file"] {
       display: none;
     }
 
     .file-name {
       font-size: 13px;
-      margin-top: 10px;
-      color: var(--muted);
+      margin-top: 6px;
+      color: #334155;
       word-break: break-word;
     }
 
@@ -84,7 +93,6 @@
       margin-top: 12px;
       transition: background 0.2s;
     }
-
     #uploadBtn:hover {
       background: var(--accent-hover);
     }
@@ -105,7 +113,6 @@
       margin-top: 12px;
       display: none;
     }
-
     .progress-bar-fill {
       background: var(--accent);
       height: 100%;
@@ -118,16 +125,17 @@
       display: none;
       position: relative;
     }
-
+    /* show URL as plain code text */
     #result {
+      display: block;
       background: #f3f4f6;
       padding: 10px 35px 10px 10px;
+      font-family: monospace;
       font-size: 14px;
       border-radius: 6px;
       word-break: break-all;
       color: var(--text);
     }
-
     .copy-icon {
       position: absolute;
       right: 10px;
@@ -136,15 +144,8 @@
       font-size: 16px;
       color: var(--accent);
     }
-
     .copy-icon:hover {
       color: var(--accent-hover);
-    }
-
-    #preview {
-      margin-top: 12px;
-      max-width: 100%;
-      border-radius: 10px;
     }
   </style>
 </head>
@@ -153,23 +154,22 @@
     <h1>Upload Image</h1>
     <form id="uploadForm">
       <label for="imageInput" class="file-drop" id="dropArea">
-        <p>Click or drag image here</p>
+        <div class="drop-icon">📁</div>
+        <p><strong>Click</strong> or <strong>drag</strong> image here</p>
         <input type="file" id="imageInput" accept="image/*" required />
       </label>
       <div class="file-name" id="fileName">No file chosen</div>
 
       <button type="submit" id="uploadBtn">Compress & Upload</button>
       <div id="loading">Preparing...</div>
-
       <div class="progress-bar" id="progressBar">
         <div class="progress-bar-fill" id="progressFill"></div>
       </div>
     </form>
 
     <div id="result-wrapper">
-      <div id="result"></div>
+      <code id="result"></code>
       <div class="copy-icon" id="copyIcon">📋</div>
-      <img id="preview" src="" alt="Image Preview" />
     </div>
   </div>
 
@@ -184,7 +184,6 @@
     const resultDiv = document.getElementById("result");
     const resultWrapper = document.getElementById("result-wrapper");
     const copyIcon = document.getElementById("copyIcon");
-    const preview = document.getElementById("preview");
     const dropArea = document.getElementById("dropArea");
 
     let selectedFile = null;
@@ -194,26 +193,25 @@
       loadingText.style.display = "none";
       progressBar.style.display = "none";
       resultWrapper.style.display = "none";
-      preview.src = "";
       resultDiv.textContent = "";
     }
 
+    // file chooser
     imageInput.addEventListener("change", () => {
       selectedFile = imageInput.files[0];
       fileNameDiv.textContent = selectedFile ? selectedFile.name : "No file chosen";
       resetUI();
     });
 
-    dropArea.addEventListener("dragover", (e) => {
+    // drag & drop handlers
+    dropArea.addEventListener("dragover", e => {
       e.preventDefault();
       dropArea.classList.add("dragover");
     });
-
     dropArea.addEventListener("dragleave", () => {
       dropArea.classList.remove("dragover");
     });
-
-    dropArea.addEventListener("drop", (e) => {
+    dropArea.addEventListener("drop", e => {
       e.preventDefault();
       dropArea.classList.remove("dragover");
       selectedFile = e.dataTransfer.files[0];
@@ -222,7 +220,7 @@
       resetUI();
     });
 
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener("submit", async e => {
       e.preventDefault();
       if (!selectedFile) return alert("Please select an image!");
 
@@ -232,7 +230,7 @@
       progressBar.style.display = "block";
 
       try {
-        // Only compress if file > 3MB
+        // Only compress if > 3MB
         let uploadFile = selectedFile;
         if (selectedFile.size > 3 * 1024 * 1024) {
           loadingText.textContent = "Compressing image…";
@@ -243,45 +241,40 @@
           });
         }
 
-        // Simulated upload with progress
-        const fakeUpload = (file) => {
-          return new Promise((resolve) => {
-            let uploaded = 0;
-            const total = file.size;
-            const interval = setInterval(() => {
-              uploaded += total / 30;
-              const percent = Math.min((uploaded / total) * 100, 100);
-              progressFill.style.width = percent.toFixed(0) + "%";
-              loadingText.textContent = `Uploading… ${percent.toFixed(0)}%`;
+        // Fake upload with progress
+        const fakeUpload = file => new Promise(resolve => {
+          let uploaded = 0;
+          const total = file.size;
+          const interval = setInterval(() => {
+            uploaded += total / 30;
+            const pct = Math.min((uploaded / total) * 100, 100);
+            progressFill.style.width = pct.toFixed(0) + "%";
+            loadingText.textContent = `Uploading… ${pct.toFixed(0)}%`;
+            if (pct >= 100) {
+              clearInterval(interval);
+              setTimeout(() => resolve(URL.createObjectURL(file)), 500);
+            }
+          }, 100);
+        });
 
-              if (percent >= 100) {
-                clearInterval(interval);
-                setTimeout(() => resolve(URL.createObjectURL(file)), 500);
-              }
-            }, 100);
-          });
-        };
-
-        const fakeUrl = await fakeUpload(uploadFile);
-
-        // Show result & preview
-        resultDiv.textContent = fakeUrl;
+        const url = await fakeUpload(uploadFile);
+        // show URL as plain text
+        resultDiv.textContent = url;
         resultWrapper.style.display = "block";
-        preview.src = fakeUrl;
         loadingText.style.display = "none";
       } catch (err) {
         alert("Error during compression or upload");
         console.error(err);
+      } finally {
+        uploadBtn.disabled = false;
       }
-
-      uploadBtn.disabled = false;
     });
 
+    // copy-to-clipboard
     copyIcon.addEventListener("click", () => {
-      const text = resultDiv.textContent;
-      navigator.clipboard.writeText(text).then(() => {
+      navigator.clipboard.writeText(resultDiv.textContent).then(() => {
         copyIcon.textContent = "✅";
-        setTimeout(() => (copyIcon.textContent = "📋"), 1500);
+        setTimeout(() => copyIcon.textContent = "📋", 1500);
       });
     });
   </script>
