@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Professional Image Uploader</title>
-  <!-- Compression library -->
+  <!-- Compression lib -->
   <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
   <style>
     :root {
@@ -16,130 +16,108 @@
       --text: #1f2937;
       --muted: #6b7280;
       --bar-bg: #e5e7eb;
+      --compress-color: #facc15; /* yellow */
+      --upload-color: #4f46e5;   /* purple */
       --disabled: #a5b4fc;
     }
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin:0; padding:0; }
     body {
-      margin: 0;
       font-family: 'Segoe UI',sans-serif;
       background: linear-gradient(to right, var(--bg-start), var(--bg-end));
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text);
-      padding: 20px;
+      height:100vh; display:flex; align-items:center; justify-content:center;
+      color: var(--text); padding:20px;
     }
     .card {
       background: var(--card-bg);
       backdrop-filter: blur(8px);
       border-radius: 1rem;
       box-shadow: 0 12px 32px rgba(0,0,0,0.12);
-      max-width: 480px;
-      width: 100%;
-      padding: 2rem;
+      width:100%; max-width:480px;
+      padding:2rem;
+      text-align:center;
     }
     h1 {
-      margin-top: 0;
-      font-size: 1.5rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
+      font-size:1.5rem; margin-bottom:1.5rem;
     }
     .file-drop {
-      border: 2px dashed #cbd5e1;
-      border-radius: 0.75rem;
-      padding: 2rem;
-      text-align: center;
-      transition: background 0.3s, border-color 0.3s;
-      cursor: pointer;
-      margin-bottom: 1rem;
+      position:relative;
+      border:2px dashed #cbd5e1;
+      border-radius:0.75rem;
+      padding:2rem;
+      cursor:pointer;
+      transition:background 0.3s, border-color 0.3s;
+      margin-bottom:1rem;
+    }
+    .file-drop::before {
+      content:"";
+      position:absolute;
+      top:-10px; left:-10px; right:-10px; bottom:-10px;
+      border:2px dashed #cbd5e1;
+      border-radius:1rem;
+      pointer-events:none;
     }
     .file-drop.dragover {
-      background: #e0e7ff;
+      background:#e0e7ff;
       border-color: var(--accent);
     }
     .file-drop .icon {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
+      font-size:2rem;
+      margin-bottom:0.5rem;
       color: var(--muted);
     }
     .file-drop p {
-      margin: 0;
-      font-size: 0.9rem;
+      font-size:0.9rem;
       color: var(--muted);
     }
-    input[type="file"] {
-      display: none;
-    }
+    input[type="file"] { display:none; }
     .file-name {
-      font-size: 0.85rem;
+      font-size:0.85rem;
       color: var(--text);
-      margin-bottom: 1rem;
-      word-break: break-all;
-      text-align: center;
+      margin-bottom:1rem;
+      word-break:break-all;
     }
     button {
-      width: 100%;
-      padding: 0.75rem;
-      font-size: 1rem;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: background 0.2s;
+      width:100%; padding:0.75rem;
+      font-size:1rem; border:none;
+      border-radius:0.5rem; cursor:pointer;
+      background: var(--accent); color:white;
+      transition:background 0.2s;
     }
-    button:hover:not([disabled]) { background: var(--accent-hover); }
+    button:hover:not([disabled]) {
+      background: var(--accent-hover);
+    }
     button[disabled] {
       background: var(--disabled);
-      cursor: not-allowed;
+      cursor:not-allowed;
     }
     .stage-label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      text-align: center;
-      margin-top: 0.75rem;
-      min-height: 1.2rem;
+      font-size:0.85rem; color: var(--muted);
+      margin-top:0.75rem; min-height:1.2rem;
     }
     .progress-bar {
-      width: 100%;
-      background: var(--bar-bg);
-      border-radius: 0.5rem;
-      overflow: hidden;
-      height: 0.75rem;
-      margin-top: 0.5rem;
-      display: none;
+      width:100%; background:var(--bar-bg);
+      border-radius:0.5rem; overflow:hidden;
+      height:0.75rem; margin-top:0.5rem;
+      display:none;
     }
     .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--accent);
-      transition: width 0.1s ease;
+      height:100%; width:0%; transition:width 0.1s ease;
     }
     #result {
-      margin-top: 1.5rem;
-      display: none;
-      position: relative;
+      margin-top:1.5rem; display:none; position:relative;
     }
     #result code {
-      display: block;
-      background: #f3f4f6;
-      padding: 0.75rem 2.5rem 0.75rem 0.75rem;
-      font-family: monospace;
-      font-size: 0.9rem;
-      border-radius: 0.5rem;
-      word-break: break-all;
+      display:block; background:#f3f4f6;
+      padding:0.75rem 2.5rem 0.75rem 0.75rem;
+      font-family:monospace; font-size:0.9rem;
+      border-radius:0.5rem; word-break:break-all;
     }
     .copy-icon {
-      position: absolute;
-      right: 0.75rem;
-      top: 0.75rem;
-      cursor: pointer;
-      font-size: 1rem;
-      color: var(--accent);
+      position:absolute; top:0.75rem; right:0.75rem;
+      font-size:1rem; color:var(--accent); cursor:pointer;
     }
     .copy-icon:hover {
-      color: var(--accent-hover);
+      color:var(--accent-hover);
     }
   </style>
 </head>
@@ -152,16 +130,16 @@
       <input type="file" id="fileInput" accept="image/*" />
     </label>
     <div class="file-name" id="fileName">No file chosen</div>
-    <button id="startBtn">Compress & Upload</button>
+    <button id="startBtn">Compress &amp; Upload</button>
     <div class="stage-label" id="stageLabel"></div>
 
     <!-- Compression Progress -->
     <div class="progress-bar" id="compressBar">
-      <div class="progress-fill" id="compressFill"></div>
+      <div class="progress-fill" id="compressFill" style="background: var(--compress-color)"></div>
     </div>
     <!-- Upload Progress -->
     <div class="progress-bar" id="uploadBar">
-      <div class="progress-fill" id="uploadFill"></div>
+      <div class="progress-fill" id="uploadFill" style="background: var(--upload-color)"></div>
     </div>
 
     <div id="result">
@@ -171,62 +149,57 @@
   </div>
 
   <script>
-    const dropArea     = document.getElementById('dropArea');
-    const fileInput    = document.getElementById('fileInput');
-    const fileNameElem = document.getElementById('fileName');
-    const startBtn     = document.getElementById('startBtn');
-    const stageLabel   = document.getElementById('stageLabel');
-    const compressBar  = document.getElementById('compressBar');
-    const compressFill = document.getElementById('compressFill');
-    const uploadBar    = document.getElementById('uploadBar');
-    const uploadFill   = document.getElementById('uploadFill');
-    const resultDiv    = document.getElementById('result');
-    const resultUrl    = document.getElementById('resultUrl');
-    const copyBtn      = document.getElementById('copyBtn');
+    const dropArea    = document.getElementById('dropArea');
+    const fileInput   = document.getElementById('fileInput');
+    const fileNameEl  = document.getElementById('fileName');
+    const startBtn    = document.getElementById('startBtn');
+    const stageLabel  = document.getElementById('stageLabel');
+    const compressBar = document.getElementById('compressBar');
+    const compressFill= document.getElementById('compressFill');
+    const uploadBar   = document.getElementById('uploadBar');
+    const uploadFill  = document.getElementById('uploadFill');
+    const resultDiv   = document.getElementById('result');
+    const resultUrl   = document.getElementById('resultUrl');
+    const copyBtn     = document.getElementById('copyBtn');
 
     let currentFile = null;
 
-    // Reset UI
     function resetUI() {
       stageLabel.textContent = '';
       compressBar.style.display = 'none'; compressFill.style.width = '0%';
-      uploadBar.style.display   = 'none'; uploadFill.style.width = '0%';
+      uploadBar.style.display   = 'none'; uploadFill.style.width   = '0%';
       resultDiv.style.display   = 'none';
-      startBtn.disabled          = false;
+      startBtn.disabled         = false;
     }
 
-    // File selection
     fileInput.addEventListener('change', () => {
       currentFile = fileInput.files[0];
-      fileNameElem.textContent = currentFile ? currentFile.name : 'No file chosen';
+      fileNameEl.textContent = currentFile ? currentFile.name : 'No file chosen';
       resetUI();
     });
 
-    // Drag & Drop
     ['dragover','dragleave','drop'].forEach(evt => {
       dropArea.addEventListener(evt, e => {
         e.preventDefault();
-        dropArea.classList.toggle('dragover', evt === 'dragover');
-        if (evt === 'drop') {
+        dropArea.classList.toggle('dragover', evt==='dragover');
+        if (evt==='drop') {
           currentFile = e.dataTransfer.files[0];
           fileInput.files = e.dataTransfer;
-          fileNameElem.textContent = currentFile.name;
+          fileNameEl.textContent = currentFile.name;
           resetUI();
         }
       });
     });
 
-    // Main workflow
     startBtn.addEventListener('click', async () => {
       if (!currentFile) return alert('Please select an image first!');
       startBtn.disabled = true;
 
-      // 1) Compression (only if >1.5MB)
+      // 1) Compression (>1.5MB only)
       let toUpload = currentFile;
-      if (currentFile.size > 1.5 * 1024 * 1024) {
+      if (currentFile.size > 1.5*1024*1024) {
         stageLabel.textContent = 'Compressing… 0%';
         compressBar.style.display = 'block';
-
         toUpload = await imageCompression(currentFile, {
           maxSizeMB: 1,
           maxWidthOrHeight: 1024,
@@ -247,10 +220,10 @@
       formData.append('image', toUpload, toUpload.name);
 
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', '/upload');
+      xhr.open('POST','/upload');
       xhr.upload.onprogress = e => {
         if (e.lengthComputable) {
-          const p = Math.round((e.loaded / e.total) * 100);
+          const p = Math.round(e.loaded / e.total * 100);
           uploadFill.style.width = p + '%';
           stageLabel.textContent = `Uploading… ${p}%`;
         }
@@ -271,7 +244,6 @@
       xhr.send(formData);
     });
 
-    // Copy-to-clipboard
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(resultUrl.textContent).then(() => {
         copyBtn.textContent = '✅';
