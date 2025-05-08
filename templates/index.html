@@ -3,227 +3,281 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Image Upload</title>
+  <title>Professional Image Uploader</title>
   <!-- Compression library -->
   <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.1/dist/browser-image-compression.js"></script>
   <style>
     :root {
-      --bg: #f0f2f5;
-      --card-bg: rgba(255, 255, 255, 0.95);
+      --bg-start: #edf2f7;
+      --bg-end: #ffffff;
+      --card-bg: rgba(255,255,255,0.8);
       --accent: #4f46e5;
       --accent-hover: #4338ca;
       --text: #1f2937;
       --muted: #6b7280;
+      --bar-bg: #e5e7eb;
+      --disabled: #a5b4fc;
     }
+    * { box-sizing: border-box; }
     body {
-      margin: 0; font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #dfe9f3, #ffffff);
-      display: flex; align-items: center; justify-content: center;
-      min-height: 100vh; color: var(--text);
+      margin: 0;
+      font-family: 'Segoe UI',sans-serif;
+      background: linear-gradient(to right, var(--bg-start), var(--bg-end));
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+      padding: 20px;
     }
-    .upload-card {
-      background: var(--card-bg); border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-      padding: 40px 30px; max-width: 420px; width: 100%;
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(8px);
+      border-radius: 1rem;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+      max-width: 480px;
+      width: 100%;
+      padding: 2rem;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .file-drop {
+      border: 2px dashed #cbd5e1;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      text-align: center;
+      transition: background 0.3s, border-color 0.3s;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    .file-drop.dragover {
+      background: #e0e7ff;
+      border-color: var(--accent);
+    }
+    .file-drop .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: var(--muted);
+    }
+    .file-drop p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-name {
+      font-size: 0.85rem;
+      color: var(--text);
+      margin-bottom: 1rem;
+      word-break: break-all;
       text-align: center;
     }
-    h1 { font-size: 22px; margin-bottom: 24px; }
-    .file-drop {
-      border: 2px dashed #cbd5e1; border-radius: 12px;
-      padding: 30px; margin-bottom: 14px; cursor: pointer;
-      transition: background 0.3s;
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; min-height: 120px;
-    }
-    .file-drop.dragover { background: #e0e7ff; }
-    .drop-icon { font-size: 36px; color: #94a3b8; margin-bottom: 8px; }
-    .file-drop p { margin: 0; font-size: 14px; color: var(--muted); }
-    input[type="file"] { display: none; }
-    .file-name {
-      font-size: 13px; margin-top: 6px; color: #334155;
-      word-break: break-word;
-    }
-    #uploadBtn {
-      background: var(--accent); color: white; border: none;
-      padding: 12px; font-size: 15px; border-radius: 8px;
-      cursor: pointer; width: 100%; margin-top: 12px;
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
       transition: background 0.2s;
     }
-    #uploadBtn:hover { background: var(--accent-hover); }
-    #loading {
-      margin-top: 14px; font-size: 13px; color: var(--muted);
-      display: none;
+    button:hover:not([disabled]) { background: var(--accent-hover); }
+    button[disabled] {
+      background: var(--disabled);
+      cursor: not-allowed;
+    }
+    .stage-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 0.75rem;
+      min-height: 1.2rem;
     }
     .progress-bar {
-      width: 100%; background: #e5e7eb; border-radius: 6px;
-      height: 12px; overflow: hidden; margin-top: 12px;
+      width: 100%;
+      background: var(--bar-bg);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      height: 0.75rem;
+      margin-top: 0.5rem;
       display: none;
     }
-    .progress-bar-fill {
-      background: var(--accent); height: 100%; width: 0%;
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
       transition: width 0.1s ease;
     }
-    #result-wrapper {
-      margin-top: 18px; display: none; position: relative;
-    }
     #result {
-      display: block; background: #f3f4f6;
-      padding: 10px 35px 10px 10px; font-family: monospace;
-      font-size: 14px; border-radius: 6px; word-break: break-all;
-      color: var(--text);
+      margin-top: 1.5rem;
+      display: none;
+      position: relative;
+    }
+    #result code {
+      display: block;
+      background: #f3f4f6;
+      padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+      font-family: monospace;
+      font-size: 0.9rem;
+      border-radius: 0.5rem;
+      word-break: break-all;
     }
     .copy-icon {
-      position: absolute; right: 10px; top: 10px;
-      cursor: pointer; font-size: 16px; color: var(--accent);
+      position: absolute;
+      right: 0.75rem;
+      top: 0.75rem;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--accent);
     }
-    .copy-icon:hover { color: var(--accent-hover); }
+    .copy-icon:hover {
+      color: var(--accent-hover);
+    }
   </style>
 </head>
 <body>
-  <div class="upload-card">
-    <h1>Upload Image</h1>
-    <form id="uploadForm">
-      <label for="imageInput" class="file-drop" id="dropArea">
-        <div class="drop-icon">📁</div>
-        <p><strong>Click</strong> or <strong>drag</strong> image here</p>
-        <input type="file" id="imageInput" accept="image/*" required />
-      </label>
-      <div class="file-name" id="fileName">No file chosen</div>
+  <div class="card">
+    <h1>Image Upload</h1>
+    <label class="file-drop" id="dropArea">
+      <div class="icon">📁</div>
+      <p>Click or drag &amp; drop an image</p>
+      <input type="file" id="fileInput" accept="image/*" />
+    </label>
+    <div class="file-name" id="fileName">No file chosen</div>
+    <button id="startBtn">Compress & Upload</button>
+    <div class="stage-label" id="stageLabel"></div>
 
-      <button type="submit" id="uploadBtn">Compress & Upload</button>
-      <div id="loading">Preparing…</div>
+    <!-- Compression Progress -->
+    <div class="progress-bar" id="compressBar">
+      <div class="progress-fill" id="compressFill"></div>
+    </div>
+    <!-- Upload Progress -->
+    <div class="progress-bar" id="uploadBar">
+      <div class="progress-fill" id="uploadFill"></div>
+    </div>
 
-      <div class="progress-bar" id="progressBar">
-        <div class="progress-bar-fill" id="progressFill"></div>
-      </div>
-    </form>
-
-    <div id="result-wrapper">
-      <code id="result"></code>
-      <div class="copy-icon" id="copyIcon">📋</div>
+    <div id="result">
+      <code id="resultUrl"></code>
+      <div class="copy-icon" id="copyBtn">📋</div>
     </div>
   </div>
 
   <script>
-    const form       = document.getElementById("uploadForm");
-    const imageInput = document.getElementById("imageInput");
-    const fileName   = document.getElementById("fileName");
-    const uploadBtn  = document.getElementById("uploadBtn");
-    const loading    = document.getElementById("loading");
-    const progressBar= document.getElementById("progressBar");
-    const progressFill = document.getElementById("progressFill");
-    const resultDiv  = document.getElementById("result");
-    const resultWrap = document.getElementById("result-wrapper");
-    const copyIcon   = document.getElementById("copyIcon");
-    const dropArea   = document.getElementById("dropArea");
+    const dropArea     = document.getElementById('dropArea');
+    const fileInput    = document.getElementById('fileInput');
+    const fileNameElem = document.getElementById('fileName');
+    const startBtn     = document.getElementById('startBtn');
+    const stageLabel   = document.getElementById('stageLabel');
+    const compressBar  = document.getElementById('compressBar');
+    const compressFill = document.getElementById('compressFill');
+    const uploadBar    = document.getElementById('uploadBar');
+    const uploadFill   = document.getElementById('uploadFill');
+    const resultDiv    = document.getElementById('result');
+    const resultUrl    = document.getElementById('resultUrl');
+    const copyBtn      = document.getElementById('copyBtn');
 
-    let selectedFile = null;
+    let currentFile = null;
 
+    // Reset UI
     function resetUI() {
-      progressFill.style.width = "0%";
-      loading.style.display = "none";
-      progressBar.style.display = "none";
-      resultWrap.style.display = "none";
-      resultDiv.textContent = "";
+      stageLabel.textContent = '';
+      compressBar.style.display = 'none'; compressFill.style.width = '0%';
+      uploadBar.style.display   = 'none'; uploadFill.style.width = '0%';
+      resultDiv.style.display   = 'none';
+      startBtn.disabled          = false;
     }
 
-    imageInput.addEventListener("change", () => {
-      selectedFile = imageInput.files[0];
-      fileName.textContent = selectedFile ? selectedFile.name : "No file chosen";
+    // File selection
+    fileInput.addEventListener('change', () => {
+      currentFile = fileInput.files[0];
+      fileNameElem.textContent = currentFile ? currentFile.name : 'No file chosen';
       resetUI();
     });
 
-    // Drag & drop
-    ["dragover","dragleave","drop"].forEach(evt =>
+    // Drag & Drop
+    ['dragover','dragleave','drop'].forEach(evt => {
       dropArea.addEventListener(evt, e => {
         e.preventDefault();
-        dropArea.classList.toggle("dragover", evt==="dragover");
-        if(evt==="drop") {
-          selectedFile = e.dataTransfer.files[0];
-          imageInput.files = e.dataTransfer;
-          fileName.textContent = selectedFile.name;
+        dropArea.classList.toggle('dragover', evt === 'dragover');
+        if (evt === 'drop') {
+          currentFile = e.dataTransfer.files[0];
+          fileInput.files = e.dataTransfer;
+          fileNameElem.textContent = currentFile.name;
           resetUI();
         }
-      })
-    );
-
-    form.addEventListener("submit", async e => {
-      e.preventDefault();
-      if (!selectedFile) return alert("Select an image first!");
-
-      uploadBtn.disabled = true;
-      loading.style.display = "block";
-      progressBar.style.display = "block";
-
-      try {
-        // Stage 1: Compression (only if >3MB)
-        let uploadFile = selectedFile;
-        if (selectedFile.size > 3*1024*1024) {
-          loading.textContent = "Compressing… 0%";
-          uploadFile = await imageCompression(selectedFile, {
-            maxSizeMB: 1,
-            maxWidthOrHeight: 1024,
-            useWebWorker: true,
-            onProgress: perc => {
-              const p = Math.round(perc);
-              progressFill.style.width = p + "%";
-              loading.textContent = `Compressing… ${p}%`;
-            }
-          });
-        }
-
-        // Stage 2: Upload
-        loading.textContent = "Uploading… 0%";
-        progressFill.style.width = "0%";
-
-        const formData = new FormData();
-        formData.append("image", uploadFile, uploadFile.name);
-
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST","/upload");
-        xhr.upload.onprogress = ev => {
-          if(ev.lengthComputable) {
-            const p = Math.round((ev.loaded/ev.total)*100);
-            progressFill.style.width = p + "%";
-            loading.textContent = `Uploading… ${p}%`;
-          }
-        };
-        xhr.onload = () => {
-          uploadBtn.disabled = false;
-          loading.style.display = "none";
-          progressBar.style.display = "none";
-
-          try {
-            const res = JSON.parse(xhr.responseText);
-            resultDiv.textContent = res.url || res.error;
-          } catch {
-            resultDiv.textContent = "Unexpected response";
-          }
-          resultWrap.style.display = "block";
-        };
-        xhr.onerror = () => {
-          alert("Network error during upload");
-          uploadBtn.disabled = false;
-          loading.style.display = "none";
-          progressBar.style.display = "none";
-        };
-        xhr.send(formData);
-
-      } catch (err) {
-        alert("Error: " + err.message);
-        uploadBtn.disabled = false;
-        loading.style.display = "none";
-        progressBar.style.display = "none";
-      }
+      });
     });
 
-    copyIcon.addEventListener("click", () =>
-      navigator.clipboard.writeText(resultDiv.textContent)
-        .then(() => {
-          copyIcon.textContent = "✅";
-          setTimeout(() => copyIcon.textContent="📋", 1500);
-        })
-    );
+    // Main workflow
+    startBtn.addEventListener('click', async () => {
+      if (!currentFile) return alert('Please select an image first!');
+      startBtn.disabled = true;
+
+      // 1) Compression (only if >1.5MB)
+      let toUpload = currentFile;
+      if (currentFile.size > 1.5 * 1024 * 1024) {
+        stageLabel.textContent = 'Compressing… 0%';
+        compressBar.style.display = 'block';
+
+        toUpload = await imageCompression(currentFile, {
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1024,
+          useWebWorker: true,
+          onProgress: pct => {
+            const p = Math.round(pct);
+            compressFill.style.width = p + '%';
+            stageLabel.textContent = `Compressing… ${p}%`;
+          }
+        });
+      }
+
+      // 2) Upload
+      stageLabel.textContent = 'Uploading… 0%';
+      uploadBar.style.display = 'block';
+
+      const formData = new FormData();
+      formData.append('image', toUpload, toUpload.name);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/upload');
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          const p = Math.round((e.loaded / e.total) * 100);
+          uploadFill.style.width = p + '%';
+          stageLabel.textContent = `Uploading… ${p}%`;
+        }
+      };
+      xhr.onload = () => {
+        try {
+          const res = JSON.parse(xhr.responseText);
+          resultUrl.textContent = res.url || res.error || 'No URL returned';
+        } catch {
+          resultUrl.textContent = 'Unexpected server response';
+        }
+        stageLabel.textContent = '';
+        resultDiv.style.display = 'block';
+      };
+      xhr.onerror = () => {
+        stageLabel.textContent = 'Network error during upload.';
+      };
+      xhr.send(formData);
+    });
+
+    // Copy-to-clipboard
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(resultUrl.textContent).then(() => {
+        copyBtn.textContent = '✅';
+        setTimeout(() => copyBtn.textContent = '📋', 1500);
+      });
+    });
   </script>
 </body>
 </html>
