@@ -5,9 +5,11 @@ import requests
 import os
 from datetime import datetime
 
+# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
+# Upload image route
 @app.route("/upload", methods=["POST"])
 def upload_image():
     try:
@@ -17,7 +19,7 @@ def upload_image():
 
         # Set GitHub info
         GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-        REPO = "bgridtech/images"
+        REPO = "yourusername/your-repo"  # Replace with your GitHub repo
         BRANCH = "main"
         TIMESTAMP = datetime.now().strftime("%Y%m%d%H%M%S")
         PATH = f"uploads/{TIMESTAMP}_{image_name}"
@@ -49,10 +51,13 @@ def upload_image():
     except Exception as e:
         return jsonify({ "error": str(e) }), 500
 
-# Required by Vercel
+
+# Required Vercel handler
 def handler(environ, start_response):
     from werkzeug.middleware.dispatcher import DispatcherMiddleware
     from werkzeug.wrappers import Request, Response
 
+    # Wrap Flask app in WSGI middleware
     app_dispatch = DispatcherMiddleware(app)
     return app_dispatch(environ, start_response)
+
